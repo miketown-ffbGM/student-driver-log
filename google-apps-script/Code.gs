@@ -50,7 +50,7 @@ function doPost(e) {
       const minutes = Number(s.minutes);
       const startTime = String(s.startTime||'');
       const endTime = String(s.endTime||'');
-      if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(startTime) || !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(endTime)) throw new Error('Invalid start/end time');
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(startTime) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(endTime)) throw new Error('Invalid start/end time');
       const clock = t => Number(t.slice(0,2))*60+Number(t.slice(3));
       const computed = (clock(endTime)-clock(startTime)+1440)%1440;
       if (computed === 0 || computed !== minutes) throw new Error('Duration does not match times');
