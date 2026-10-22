@@ -26,9 +26,16 @@ function sessions_() {
     notes:String(r[5]||''),createdAt:String(r[6]||'')
   }));
 }
-function doGet() {
-  try { return output_({ok:true,sessions:sessions_()}); }
-  catch(err) { return output_({ok:false,error:String(err)}); }
+function doGet(e) {
+  let result;
+  try { result = {ok:true,sessions:sessions_()}; }
+  catch(err) { result = {ok:false,error:String(err)}; }
+  const callback = String((e && e.parameter && e.parameter.callback) || '');
+  if (/^drivelogCallback_[A-Za-z0-9_]+$/.test(callback)) {
+    return ContentService.createTextOutput(callback + '(' + JSON.stringify(result) + ');')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return output_(result);
 }
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -43,7 +50,8 @@ function doPost(e) {
           !['day','night'].includes(s.period) ||
           !Number.isInteger(minutes) || minutes < 1 || minutes > 1440)
         throw new Error('Invalid driving session');
-      const id = Utilities.getUuid();
+      const id = /^[a-zA-Z0-9_-]{8,80}$/.test(String(s.id||'')) ? String(s.id) : Utilities.getUuid();
+      if (sessions_().some(row => row.id === id)) return output_({ok:true,id});
       sh.appendRow([id, String(s.date), s.period, minutes,
         String(s.supervisor||'').slice(0,100),
         String(s.notes||'').slice(0,500),new Date().toISOString()]);
