@@ -5,7 +5,7 @@
  * Do not put sensitive personal information in this sheet.
  */
 const TAB = 'Sessions';
-const HEADERS = ['id','date','period','minutes','supervisor','notes','createdAt','startTime','endTime'];
+const HEADERS = ['id','date','period','minutes','supervisor','notes','createdAt','startTime','endTime','vehicle'];
 
 function sheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -27,7 +27,7 @@ function sessions_() {
     id:String(r[0]),date:String(r[1]),period:String(r[2]),
     minutes:Number(r[3]),supervisor:String(r[4]||''),
     notes:String(r[5]||''),createdAt:String(r[6]||''),
-    startTime:String(shown[7]||''),endTime:String(shown[8]||'')
+    startTime:String(shown[7]||''),endTime:String(shown[8]||''),vehicle:String(r[9]||'')
   }));
 }
 function doGet(e) {
@@ -65,7 +65,7 @@ function doPost(e) {
       if (sessions_().some(row => row.id === id)) return output_({ok:true,id});
       sh.appendRow([id, String(s.date), s.period, minutes,
         String(s.supervisor||'').slice(0,100),
-        String(s.notes||'').slice(0,500),new Date().toISOString(),startTime,endTime]);
+        String(s.notes||'').slice(0,500),new Date().toISOString(),startTime,endTime,String(s.vehicle||'').slice(0,100)]);
       PropertiesService.getScriptProperties().deleteProperty('lastSaveError');
       console.log('Saved session: '+id);
       return output_({ok:true,id});
