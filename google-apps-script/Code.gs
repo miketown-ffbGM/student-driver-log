@@ -20,12 +20,14 @@ function output_(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 function sessions_() {
-  const rows = sheet_().getDataRange().getValues();
-  return rows.slice(1).filter(r => r[0]).map(r => ({
+  const range = sheet_().getDataRange();
+  const rows = range.getValues();
+  const displayed = range.getDisplayValues();
+  return rows.slice(1).map((r, i) => ({r, shown:displayed[i+1]})).filter(x => x.r[0]).map(({r, shown}) => ({
     id:String(r[0]),date:String(r[1]),period:String(r[2]),
     minutes:Number(r[3]),supervisor:String(r[4]||''),
     notes:String(r[5]||''),createdAt:String(r[6]||''),
-    startTime:String(r[7]||''),endTime:String(r[8]||'')
+    startTime:String(shown[7]||''),endTime:String(shown[8]||'')
   }));
 }
 function doGet(e) {
