@@ -30,7 +30,7 @@ function sessions_() {
 }
 function doGet(e) {
   let result;
-  try { result = {ok:true,sessions:sessions_()}; }
+  try { result = {ok:true,sessions:sessions_(),lastError:PropertiesService.getScriptProperties().getProperty('lastSaveError')||''}; }
   catch(err) { result = {ok:false,error:String(err)}; }
   const callback = String((e && e.parameter && e.parameter.callback) || '');
   if (/^drivelogCallback_[A-Za-z0-9_]+$/.test(callback)) {
@@ -44,6 +44,7 @@ function doPost(e) {
   lock.waitLock(20000);
   try {
     const req = JSON.parse(e.postData.contents || '{}');
+    console.log('Received action: '+String(req.action||''));
     const sh = sheet_();
     if (req.action === 'add') {
       const s = req.session || {};
@@ -63,6 +64,8 @@ function doPost(e) {
       sh.appendRow([id, String(s.date), s.period, minutes,
         String(s.supervisor||'').slice(0,100),
         String(s.notes||'').slice(0,500),new Date().toISOString(),startTime,endTime]);
+      PropertiesService.getScriptProperties().deleteProperty('lastSaveError');
+      console.log('Saved session: '+id);
       return output_({ok:true,id});
     }
     if (req.action === 'delete') {
@@ -74,6 +77,6 @@ function doPost(e) {
       return output_({ok:true});
     }
     throw new Error('Unknown action');
-  } catch(err) { return output_({ok:false,error:String(err)}); }
+  } catch(err) { console.error('DriveLog save error: '+String(err)); PropertiesService.getScriptProperties().setProperty('lastSaveError',String(err)); return output_({ok:false,error:String(err)}); }
   finally { lock.releaseLock(); }
 }
